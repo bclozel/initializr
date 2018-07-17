@@ -168,6 +168,19 @@ initializr:
       dependency-management-plugin-version: 0.6.0.RELEASE
     kotlin:
       default-version: 1.2.41
+    categories:
+      - id: core
+        name: Core
+      - id: cloud
+        name: Cloud
+      - id: data
+        name: Data
+      - id: messaging
+        name: Messaging
+      - id: platform
+        name: Platform
+      - id: web
+        name: Web
     repositories:
       sonatype-snapshots:
         name: Sonatype Snapshots
@@ -175,6 +188,7 @@ initializr:
         snapshotsEnabled: true
   dependencies:
     - name: Core
+      category: core
       content:
         - name: DevTools
           id: devtools
@@ -293,6 +307,7 @@ initializr:
           id: aop
           description: Create your own Aspects using Spring AOP and AspectJ
     - name: Web
+      category: web
       content:
         - name: Web
           id: web
@@ -451,6 +466,7 @@ initializr:
             - rel: reference
               href: https://keycloak.gitbooks.io/documentation/securing_apps/topics/oidc/java/spring-boot-adapter.html
     - name: Template Engines
+      category: web
       content:
         - name: Thymeleaf
           id: thymeleaf
@@ -490,6 +506,7 @@ initializr:
             - rel: reference
               href: http://docs.spring.io/spring-boot/docs/{bootVersion}/reference/htmlsingle/#boot-features-spring-mvc-template-engines
     - name: SQL
+      category: data
       content:
         - name: JPA
           id: data-jpa
@@ -610,6 +627,7 @@ initializr:
             - rel: reference
               href: http://docs.spring.io/spring-boot/docs/{bootVersion}/reference/htmlsingle/#boot-features-jooq
     - name: NoSQL
+      category: data
       content:
         - name: Redis
           id: data-redis
@@ -725,6 +743,7 @@ initializr:
             - rel: reference
               href: http://docs.spring.io/spring-boot/docs/{bootVersion}/reference/htmlsingle/#boot-features-gemfire
     - name: Integration
+      category: messaging
       content:
         - name: Spring Integration
           id: integration
@@ -801,6 +820,8 @@ initializr:
             - rel: reference
               href: http://docs.spring.io/spring-boot/docs/{bootVersion}/reference/htmlsingle/#boot-features-artemis
     - name: Cloud Core
+      shortName: Core
+      category: cloud
       bom: spring-cloud
       versionRange: 1.2.3.RELEASE
       content:
@@ -837,6 +858,8 @@ initializr:
               artifactId: spring-cloud-task-starter
             - versionRange: "1.4.0.RELEASE"
     - name: Cloud Config
+      shortName: Config
+      category: cloud
       bom: spring-cloud
       versionRange: 1.2.3.RELEASE
       content:
@@ -875,6 +898,8 @@ initializr:
           groupId: org.springframework.cloud
           artifactId: spring-cloud-starter-consul-config
     - name: Cloud Discovery
+      shortName: Discovery
+      category: cloud
       bom: spring-cloud
       versionRange: 1.2.3.RELEASE
       content:
@@ -920,6 +945,8 @@ initializr:
           groupId: org.springframework.cloud
           artifactId: spring-cloud-starter-consul-discovery
     - name: Cloud Routing
+      shortName: Routing
+      category: cloud
       bom: spring-cloud
       versionRange: 1.2.3.RELEASE
       content:
@@ -969,6 +996,8 @@ initializr:
               artifactId: spring-cloud-starter-feign
             - versionRange: "1.5.0.BUILD-SNAPSHOT"
     - name: Cloud Circuit Breaker
+      shortName: Circuit Breaker
+      category: cloud
       bom: spring-cloud
       versionRange: 1.2.3.RELEASE
       content:
@@ -1015,6 +1044,8 @@ initializr:
               artifactId: spring-cloud-starter-turbine-stream
             - versionRange: "1.5.0.BUILD-SNAPSHOT"
     - name: Cloud Tracing
+      shortName: Tracing
+      category: cloud
       bom: spring-cloud
       versionRange: 1.3.0.RELEASE
       content:
@@ -1029,6 +1060,8 @@ initializr:
           groupId: org.springframework.cloud
           artifactId: spring-cloud-starter-zipkin
     - name: Cloud Messaging
+      shortName: Messaging
+      category: cloud
       bom: spring-cloud
       versionRange: 1.2.3.RELEASE
       content:
@@ -1052,6 +1085,8 @@ initializr:
           groupId: org.springframework.cloud
           artifactId: spring-cloud-stream-reactive
     - name: Cloud AWS
+      shortName: Amazon Web Services
+      category: platform
       bom: spring-cloud
       versionRange: 1.2.3.RELEASE
       content:
@@ -1071,6 +1106,8 @@ initializr:
           groupId: org.springframework.cloud
           artifactId: spring-cloud-starter-aws-messaging
     - name: Cloud Contract
+      shortName: Contract
+      category: cloud
       bom: spring-cloud
       versionRange: 1.4.0.RC1
       content:
@@ -1089,6 +1126,7 @@ initializr:
           scope: test
           starter: false
     - name: Pivotal Cloud Foundry
+      category: platform
       bom: spring-cloud-services
       versionRange: 1.3.0.RELEASE
       content:
@@ -1108,6 +1146,7 @@ initializr:
           groupId: io.pivotal.spring.cloud
           artifactId: spring-cloud-services-starter-circuit-breaker
     - name: Azure
+      category: platform
       bom: azure
       versionRange: "1.5.4.RELEASE"
       content:
@@ -1157,6 +1196,8 @@ initializr:
               href: https://github.com/Microsoft/azure-spring-boot/tree/master/azure-spring-boot-starters/azure-storage-spring-boot-starter
               description: Reference doc
     - name: Spring Cloud GCP
+      shortName: Google Cloud Platform
+      category: platform
       bom: spring-cloud-gcp
       versionRange: 2.0.0.RELEASE
       content:
@@ -1197,6 +1238,7 @@ initializr:
               href: https://github.com/spring-cloud/spring-cloud-gcp/tree/master/spring-cloud-gcp-samples/spring-cloud-gcp-storage-resource-sample
               description: Sample
     - name: I/O
+      category: messaging
       content:
         - name: Batch
           id: batch
@@ -1268,6 +1310,7 @@ initializr:
               href: https://docs.spring.io/spring-statemachine/docs/current-SNAPSHOT/reference/htmlsingle/#developing-your-first-spring-statemachine-application
               description: Developing your first Spring Statemachine application
     - name: Ops
+      category: core
       content:
         - name: Actuator
           id: actuator
