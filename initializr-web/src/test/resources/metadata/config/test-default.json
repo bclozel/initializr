@@ -92,6 +92,7 @@
         "url": "https://repo.spring.io/snapshot"
       }
     },
+    "categories": [],
     "boms": {
       "my-api-bom": {
         "groupId": "org.acme",
@@ -173,7 +174,7 @@
             "scope": "compile"
           }
         ],
-        "name": "Core"
+        "name": "Spring Core"
       },
       {
         "content": [

@@ -40,7 +40,8 @@ initializr:
         name: repo3
         url: http://example.com/repo3
   dependencies:
-    - name: Core
+    - name: Spring Core
+      shortName: Core
       content:
         - name: Web
           id: web
@@ -60,6 +61,7 @@ initializr:
           aliases:
             - jpa
     - name: Other
+      shortName: Other
       content:
         - name: Foo
           groupId: org.acme

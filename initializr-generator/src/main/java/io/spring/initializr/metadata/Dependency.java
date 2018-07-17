@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.StringTokenizer;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -449,6 +450,23 @@ public class Dependency extends MetadataElement implements Describable {
 		return "Dependency{" + "id='" + getId() + '\'' + ", groupId='" + this.groupId
 				+ '\'' + ", artifactId='" + this.artifactId + '\'' + ", version='"
 				+ this.version + '\'' + '}';
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		Dependency that = (Dependency) o;
+		return Objects.equals(this.getId(), that.getId());
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(this.getId());
 	}
 
 	public static Dependency create(String groupId, String artifactId, String version,

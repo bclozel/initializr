@@ -105,6 +105,29 @@ public class DependenciesCapabilityTests {
 	}
 
 	@Test
+	public void mergeGroups() {
+		DependenciesCapability capability = createDependenciesCapability("testgroup",
+				Dependency.withId("first"), Dependency.withId("second"));
+
+		DependencyGroup sameGroup = createDependencyGroup("testgroup",
+				Dependency.withId("third"));
+		sameGroup.setShortName("test");
+		sameGroup.setCategory("test-category");
+		DependenciesCapability anotherCapability = new DependenciesCapability();
+		anotherCapability.getContent().add(sameGroup);
+
+		capability.merge(anotherCapability);
+		assertThat(capability.getContent()).hasSize(1);
+		DependencyGroup firstGroup = capability.getContent().get(0);
+		assertThat(firstGroup.getName()).isEqualTo("testgroup");
+		assertThat(firstGroup.getCategory()).isEqualTo("test-category");
+		assertThat(firstGroup.getShortName()).isEqualTo("test");
+		assertThat(capability.get("first")).isNotNull();
+		assertThat(capability.get("second")).isNotNull();
+		assertThat(capability.get("third")).isNotNull();
+	}
+
+	@Test
 	public void addDefaultVersionRange() {
 		Dependency first = Dependency.withId("first");
 		Dependency second = Dependency.withId("second");

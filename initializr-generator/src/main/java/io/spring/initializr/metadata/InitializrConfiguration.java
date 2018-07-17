@@ -21,9 +21,11 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.spring.initializr.util.InvalidVersionException;
@@ -213,6 +215,8 @@ public class InitializrConfiguration {
 		 */
 		private final Map<String, Repository> repositories = new LinkedHashMap<>();
 
+		private final Set<DependencyCategory> categories = new HashSet<>();
+
 		/**
 		 * Gradle-specific settings.
 		 */
@@ -305,6 +309,10 @@ public class InitializrConfiguration {
 			return this.repositories;
 		}
 
+		public Set<DependencyCategory> getCategories() {
+			return this.categories;
+		}
+
 		public Gradle getGradle() {
 			return this.gradle;
 		}
@@ -342,6 +350,7 @@ public class InitializrConfiguration {
 			this.maven.merge(other.maven);
 			other.boms.forEach(this.boms::putIfAbsent);
 			other.repositories.forEach(this.repositories::putIfAbsent);
+			other.categories.forEach(this.categories::add);
 		}
 
 		/**

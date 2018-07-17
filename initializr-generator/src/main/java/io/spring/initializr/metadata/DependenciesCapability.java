@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.spring.initializr.util.VersionParser;
@@ -78,10 +79,16 @@ public class DependenciesCapability extends ServiceCapability<List<DependencyGro
 
 	@Override
 	public void merge(List<DependencyGroup> otherContent) {
-		otherContent.forEach((group) -> {
-			if (this.content.stream().noneMatch((it) -> group.getName() != null
-					&& group.getName().equals(it.getName()))) {
-				this.content.add(group);
+		otherContent.forEach((otherGroup) -> {
+			Optional<DependencyGroup> existingGroup = this.content.stream()
+					.filter((it) -> otherGroup.getName() != null
+							&& otherGroup.getName().equals(it.getName()))
+					.findFirst();
+			if (existingGroup.isPresent()) {
+				existingGroup.get().merge(otherGroup);
+			}
+			else {
+				this.content.add(otherGroup);
 			}
 		});
 		index();

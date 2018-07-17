@@ -25,7 +25,7 @@
     "type": "hierarchical-multi-select",
     "values": [
       {
-        "name": "Core",
+        "name": "Spring Core",
         "values": [
           {
             "id": "web",

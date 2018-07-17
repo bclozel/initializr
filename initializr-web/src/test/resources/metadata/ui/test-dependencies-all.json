@@ -4,17 +4,17 @@
       "id": "web",
       "name": "Web",
       "description": "Web dependency description",
-      "group": "Core"
+      "group": "Spring Core"
     },
     {
       "id": "security",
       "name": "Security",
-      "group": "Core"
+      "group": "Spring Core"
     },
     {
       "id": "data-jpa",
       "name": "Data JPA",
-      "group": "Core",
+      "group": "Spring Core",
       "keywords": "jpa"
     },
     {
