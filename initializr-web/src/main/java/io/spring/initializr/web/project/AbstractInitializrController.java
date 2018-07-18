@@ -89,7 +89,7 @@ public abstract class AbstractInitializrController {
 						wrapper.getPropertyValue(descriptor.getName()));
 			}
 		}
-
+		model.put("categories", metadata.getConfiguration().getEnv().getCategories());
 		// Google analytics support
 		model.put("trackingCode",
 				metadata.getConfiguration().getEnv().getGoogleAnalyticsTrackingCode());

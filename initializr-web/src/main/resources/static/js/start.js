@@ -38,7 +38,7 @@
 
     function parseQualifier(version) {
         var qual = version.replace(/\d+/g, "");
-        return qualifiers.indexOf(qual) != -1 ? qual : "RELEASE";
+        return qualifiers.indexOf(qual) !== -1 ? qual : "RELEASE";
     }
 
     function compareVersions(a, b) {
@@ -48,14 +48,14 @@
         var versionB = b.split(".");
         for (var i = 0; i < 3; i++) {
             result = parseInt(versionA[i], 10) - parseInt(versionB[i], 10);
-            if (result != 0) {
+            if (result !== 0) {
                 return result;
             }
         }
         var aqual = parseQualifier(versionA[3]);
         var bqual = parseQualifier(versionB[3]);
         result = qualifiers.indexOf(aqual) - qualifiers.indexOf(bqual);
-        if (result != 0) {
+        if (result !== 0) {
             return result;
         }
         return versionA[3].localeCompare(versionB[3]);
@@ -84,7 +84,7 @@
         }
 
         return vars;
-    }
+    };
 
     applyParams = function() {
         var params = hashbang();
@@ -115,35 +115,50 @@
 }());
 
 $(function () {
-    if (navigator.appVersion.indexOf("Mac") != -1) {
-        $(".btn-primary").append("<kbd>&#8984; + &#9166;</kbd>");
+    var generateButtons$ = $(".button.is-primary");
+    var bootVersion$ = $("#bootVersion");
+    var autocomplete$ = $('#autocomplete');
+    if (navigator.appVersion.indexOf("Mac") !== -1) {
+        generateButtons$.append("<kbd>&#8984; + &#9166;</kbd>");
     }
     else {
-        $(".btn-primary").append("<kbd>alt + &#9166;</kbd>");
+        generateButtons$.append("<kbd>alt + &#9166;</kbd>");
     }
 
     var refreshDependencies = function (versionRange) {
         var versions = new Versions();
-        $("#dependencies div.checkbox").each(function (idx, item) {
+        $("#dependencies .dependency").each(function (idx, item) {
             if (!$(item).attr('data-range') || versions.matchRange($(item).attr('data-range'))(versionRange)) {
-                $("input", item).removeAttr("disabled");
-                $(item).removeClass("disabled has-error");
+                $("input, label", item).removeAttr("disabled");
+                $(".version-requirement", item).addClass("is-hidden");
             } else {
+                $("input, label", item).attr("disabled", true);
                 $("input", item).prop('checked', false);
-                $(item).addClass("disabled has-error");
-                $("input", item).attr("disabled", true);
+                $(".version-requirement", item).removeClass("is-hidden");
                 removeTag($("input", item).val());
             }
         });
     };
     var addTag = function (id, name) {
-        if ($("#starters div[data-id='" + id + "']").length == 0) {
+        if ($("#starters div[data-id='" + id + "']").length === 0) {
             $("#starters").append("<div class='tag' data-id='" + id + "'>" + name +
                 "<button type='button' class='close' aria-label='Close'><span aria-hidden='true'>&times;</span></button></div>");
         }
     };
     var removeTag = function (id) {
         $("#starters div[data-id='" + id + "']").remove();
+    };
+    var selectTab = function (id) {
+        $("#dependencies .tabs li").removeClass("is-active");
+        $("#dependencies .tabs li[data-id='" + id + "']").addClass("is-active");
+        $("#dependencies .dependencygroup").each(function (idx, group) {
+            if ($(this).attr("data-category") === id) {
+                $(this).removeClass("is-hidden");
+            }
+            else {
+                $(this).addClass("is-hidden");
+            }
+        });
     };
     var initializeSearchEngine = function (engine, bootVersion) {
         $.getJSON("/ui/dependencies?version=" + bootVersion, function (data) {
@@ -163,7 +178,7 @@ $(function () {
             .replace(/-/g, '');
         $("#packageName").val(package);
     };
-    refreshDependencies($("#bootVersion").val());
+    refreshDependencies(bootVersion$.val());
     $("#type").on('change', function () {
         $("#form").attr('action', $(this.options[this.selectedIndex]).attr('data-action'))
     });
@@ -175,21 +190,21 @@ $(function () {
         $("#baseDir").attr('value', this.value)
         generatePackageName();
     });
-    $("#bootVersion").on("change", function (e) {
+    bootVersion$.on("change", function (e) {
         refreshDependencies(this.value);
         initializeSearchEngine(starters, this.value);
     });
     $(".tofullversion a").on("click", function() {
-        $(".full").removeClass("hidden");
-        $(".tofullversion").addClass("hidden");
-        $(".tosimpleversion").removeClass("hidden");
+        $(".sea-of-checkboxes").removeClass("is-hidden");
+        $(".tofullversion").addClass("is-hidden");
+        $(".tosimpleversion").removeClass("is-hidden");
         $("body").scrollTop(0);
         return false;
     });
     $(".tosimpleversion a").on("click", function() {
-        $(".full").addClass("hidden");
-        $(".tofullversion").removeClass("hidden");
-        $(".tosimpleversion").addClass("hidden");
+        $(".sea-of-checkboxes").addClass("is-hidden");
+        $(".tofullversion").removeClass("is-hidden");
+        $(".tosimpleversion").addClass("is-hidden");
         applyParams();
         $("body").scrollTop(0);
         return false;
@@ -207,8 +222,8 @@ $(function () {
         limit: maxSuggestions,
         cache: false
     });
-    initializeSearchEngine(starters, $("#bootVersion").val());
-    $('#autocomplete').typeahead(
+    initializeSearchEngine(starters, bootVersion$.val());
+    autocomplete$.typeahead(
         {
             minLength: 2,
             autoSelect: true
@@ -221,7 +236,7 @@ $(function () {
                     return "<div><strong>" + data.name + "</strong><br/><small>" + data.description + "</small></div>";
                 },
                 footer: function(search) {
-                    if (search.suggestions && search.suggestions.length == maxSuggestions) {
+                    if (search.suggestions && search.suggestions.length === maxSuggestions) {
                         return "<div class=\"tt-footer\">More matches, please refine your search</div>";
                     }
                     else {
@@ -230,7 +245,7 @@ $(function () {
                 }
             }
         });
-    $('#autocomplete').bind('typeahead:select', function (ev, suggestion) {
+    autocomplete$.bind('typeahead:select', function (ev, suggestion) {
         var alreadySelected = $("#dependencies input[value='" + suggestion.id + "']").prop('checked');
         if(alreadySelected) {
             removeTag(suggestion.id);
@@ -248,7 +263,7 @@ $(function () {
         removeTag(id);
     });
     $("#dependencies input").bind("change", function () {
-        var value = $(this).val()
+        var value = $(this).val();
         if ($(this).prop('checked')) {
             var results = starters.get(value);
             addTag(results[0].id, results[0].name);
@@ -256,11 +271,16 @@ $(function () {
             removeTag(value);
         }
     });
+    selectTab("core");
+    $("#dependencies .tabs a").bind("click", function() {
+        var category = $(this).parent().attr("data-id");
+        selectTab(category);
+    });
     Mousetrap.bind(['command+enter', 'alt+enter'], function (e) {
         $("#form").submit();
         return false;
     });
-    var autocompleteTrap = new Mousetrap($("#autocomplete").get(0));
+    var autocompleteTrap = new Mousetrap(autocomplete$.get(0));
     autocompleteTrap.bind(['command+enter', 'alt+enter'], function (e) {
         $("#form").submit();
         return false;
