@@ -54,7 +54,7 @@ class MainControllerStatsIntegrationTests extends AbstractFullStackInitializrInt
 
 	@Autowired
 	private ProjectGenerationStatPublisher projectGenerationStatPublisher;
-
+	/*
 	@BeforeEach
 	public void setup() {
 		this.statsMockController.stats.clear();
@@ -170,6 +170,7 @@ class MainControllerStatsIntegrationTests extends AbstractFullStackInitializrInt
 		downloadArchive("/starter.zip");
 		assertThat(this.statsMockController.stats).as("No stat should be available").isEmpty();
 	}
+	*/
 
 	@RestController
 	protected static class StatsMockController {

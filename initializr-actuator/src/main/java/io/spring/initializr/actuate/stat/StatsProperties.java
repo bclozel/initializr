@@ -18,7 +18,6 @@ package io.spring.initializr.actuate.stat;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
-import org.springframework.util.StringUtils;
 
 /**
  * Statistics-related properties.
@@ -41,21 +40,6 @@ public class StatsProperties {
 	public static final class Elastic {
 
 		/**
-		 * Elastic service uri. Overrides username and password when UserInfo is set.
-		 */
-		private String uri;
-
-		/**
-		 * Elastic service username.
-		 */
-		private String username;
-
-		/**
-		 * Elastic service password.
-		 */
-		private String password;
-
-		/**
 		 * Name of the index.
 		 */
 		private String indexName = "initializr";
@@ -70,21 +54,15 @@ public class StatsProperties {
 		 */
 		private int maxAttempts = 3;
 
-		public String getUsername() {
-			return this.username;
-		}
+		/**
+		 * Maximum interval between bulk requests in seconds.
+		 */
+		private int flushInterval = 60;
 
-		public void setUsername(String username) {
-			this.username = username;
-		}
-
-		public String getPassword() {
-			return this.password;
-		}
-
-		public void setPassword(String password) {
-			this.password = password;
-		}
+		/**
+		 * Maximum size of documents to send within a bulk request.
+		 */
+		private int batchSize = 20;
 
 		public String getIndexName() {
 			return this.indexName;
@@ -110,21 +88,21 @@ public class StatsProperties {
 			this.maxAttempts = maxAttempts;
 		}
 
-		public String getUri() {
-			return this.uri;
+		public int getFlushInterval() {
+			return flushInterval;
 		}
 
-		public void setUri(String uri) {
-			this.uri = cleanUri(uri);
+		public void setFlushInterval(int flushInterval) {
+			this.flushInterval = flushInterval;
 		}
 
-		private static String cleanUri(String contextPath) {
-			if (StringUtils.hasText(contextPath) && contextPath.endsWith("/")) {
-				return contextPath.substring(0, contextPath.length() - 1);
-			}
-			return contextPath;
+		public int getBatchSize() {
+			return batchSize;
 		}
 
+		public void setBatchSize(int batchSize) {
+			this.batchSize = batchSize;
+		}
 	}
 
 }

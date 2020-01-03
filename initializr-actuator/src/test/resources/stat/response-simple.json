@@ -1,0 +1,23 @@
+{
+  "took": 30,
+  "errors": false,
+  "items": [
+    {
+      "create": {
+        "_index": "initializr",
+        "_type": "request",
+        "_id": "1",
+        "_version": 1,
+        "result": "created",
+        "_shards": {
+          "total": 2,
+          "successful": 1,
+          "failed": 0
+        },
+        "status": 201,
+        "_seq_no": 0,
+        "_primary_term": 1
+      }
+    }
+  ]
+}

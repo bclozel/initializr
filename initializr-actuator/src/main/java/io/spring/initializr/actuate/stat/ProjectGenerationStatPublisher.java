@@ -16,31 +16,30 @@
 
 package io.spring.initializr.actuate.stat;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.spring.initializr.actuate.stat.StatsProperties.Elastic;
 import io.spring.initializr.web.project.ProjectRequestEvent;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.elasticsearch.action.bulk.BackoffPolicy;
+import org.elasticsearch.action.bulk.BulkItemResponse;
+import org.elasticsearch.action.bulk.BulkProcessor;
+import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.bulk.BulkResponse;
+import org.elasticsearch.action.index.IndexRequest;
+import org.elasticsearch.client.RequestOptions;
+import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.common.unit.TimeValue;
+import org.elasticsearch.common.xcontent.XContentType;
 
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.event.EventListener;
-import org.springframework.http.MediaType;
-import org.springframework.http.RequestEntity;
-import org.springframework.retry.support.RetryTemplate;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.util.StringUtils;
-import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * Publish stats for each project generated to an Elastic index.
  *
  * @author Stephane Nicoll
+ * @author Brian Clozel
  */
 public class ProjectGenerationStatPublisher {
 
@@ -50,45 +49,37 @@ public class ProjectGenerationStatPublisher {
 
 	private final ObjectMapper objectMapper;
 
-	private final RestTemplate restTemplate;
+	private final StatsProperties.Elastic elasticProperties;
 
-	private URI requestUrl;
-
-	private final RetryTemplate retryTemplate;
+	private final BulkProcessor bulkProcessor;
 
 	public ProjectGenerationStatPublisher(ProjectRequestDocumentFactory documentFactory,
-			StatsProperties statsProperties, RestTemplateBuilder restTemplateBuilder, RetryTemplate retryTemplate) {
+			StatsProperties statsProperties, RestHighLevelClient restHighLevelClient) {
 		this.documentFactory = documentFactory;
 		this.objectMapper = createObjectMapper();
-		StatsProperties.Elastic elastic = statsProperties.getElastic();
-		UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromUri(determineEntityUrl(elastic));
-		this.restTemplate = configureAuthorization(restTemplateBuilder, elastic, uriBuilder).build();
-		this.requestUrl = uriBuilder.userInfo(null).build().toUri();
-		this.retryTemplate = retryTemplate;
+		this.elasticProperties = statsProperties.getElastic();
+		this.bulkProcessor = BulkProcessor.builder((request, listener) -> {
+			restHighLevelClient.bulkAsync(request, RequestOptions.DEFAULT, listener);
+		}, new BulkListener()).setBulkActions(this.elasticProperties.getBatchSize())
+				.setFlushInterval(TimeValue.timeValueSeconds(this.elasticProperties.getFlushInterval()))
+				.setConcurrentRequests(1).setBackoffPolicy(BackoffPolicy
+						.exponentialBackoff(TimeValue.timeValueMillis(50), this.elasticProperties.getMaxAttempts()))
+				.build();
 	}
 
 	@EventListener
-	@Async
 	public void handleEvent(ProjectRequestEvent event) {
-		String json = null;
-		try {
-			ProjectRequestDocument document = this.documentFactory.createDocument(event);
-			if (logger.isDebugEnabled()) {
-				logger.debug("Publishing " + document);
-			}
-			json = toJson(document);
+		ProjectRequestDocument document = this.documentFactory.createDocument(event);
+		logger.debug("Adding to the publishing queue: " + document);
 
-			RequestEntity<String> request = RequestEntity.post(this.requestUrl).contentType(MediaType.APPLICATION_JSON)
-					.body(json);
+		IndexRequest indexRequest = new IndexRequest(this.elasticProperties.getIndexName(),
+				this.elasticProperties.getEntityName());
+		indexRequest.source(toJson(document), XContentType.JSON);
+		this.bulkProcessor.add(indexRequest);
+	}
 
-			this.retryTemplate.execute((context) -> {
-				this.restTemplate.exchange(request, String.class);
-				return null;
-			});
-		}
-		catch (Exception ex) {
-			logger.warn(String.format("Failed to publish stat to index, document follows %n%n%s%n", json), ex);
-		}
+	protected BulkProcessor getBulkProcessor() {
+		return this.bulkProcessor;
 	}
 
 	private String toJson(ProjectRequestDocument stats) {
@@ -106,36 +97,32 @@ public class ProjectGenerationStatPublisher {
 		return mapper;
 	}
 
-	// For testing purposes only
-	protected RestTemplate getRestTemplate() {
-		return this.restTemplate;
-	}
+	class BulkListener implements BulkProcessor.Listener {
 
-	protected void updateRequestUrl(URI requestUrl) {
-		this.requestUrl = requestUrl;
-	}
+		@Override
+		public void beforeBulk(long id, BulkRequest bulkRequest) {
+			logger.debug(String.format("About to publish %s documents", bulkRequest.numberOfActions()));
+		}
 
-	private static RestTemplateBuilder configureAuthorization(RestTemplateBuilder restTemplateBuilder, Elastic elastic,
-			UriComponentsBuilder uriComponentsBuilder) {
-		String userInfo = uriComponentsBuilder.build().getUserInfo();
-		if (StringUtils.hasText(userInfo)) {
-			String[] credentials = userInfo.split(":");
-			return restTemplateBuilder.basicAuthentication(credentials[0], credentials[1]);
+		@Override
+		public void afterBulk(long id, BulkRequest bulkRequest, BulkResponse bulkResponse) {
+			if (bulkResponse.hasFailures()) {
+				for (BulkItemResponse item : bulkResponse.getItems()) {
+					if (item.isFailed()) {
+						logger.warn(String.format("Failed to publish stat %s to index %s", item.getId(),
+								item.getFailureMessage()));
+					}
+				}
+			}
 		}
-		else if (StringUtils.hasText(elastic.getUsername())) {
-			return restTemplateBuilder.basicAuthentication(elastic.getUsername(), elastic.getPassword());
-		}
-		return restTemplateBuilder;
-	}
 
-	private static URI determineEntityUrl(Elastic elastic) {
-		String entityUrl = elastic.getUri() + "/" + elastic.getIndexName() + "/" + elastic.getEntityName();
-		try {
-			return new URI(entityUrl);
+		@Override
+		public void afterBulk(long id, BulkRequest bulkRequest, Throwable ex) {
+			bulkRequest.requests().forEach(req -> {
+				logger.warn(String.format("Failed to publish document: %s", req.toString()), ex);
+			});
 		}
-		catch (URISyntaxException ex) {
-			throw new IllegalStateException("Cannot create entity URL: " + entityUrl, ex);
-		}
+
 	}
 
 }
